@@ -77,12 +77,12 @@ The `Utilities` class has the following structure:
 -  `m_widthField` -- specifies the length of the token extracted; used for display purposes; default value is `1`.
 
 
-***Type Variable***
+***Class Variable***
 
 -  `m_delimiter` -- separates the tokens in any given `std::string` object. All `Utilities` objects in the system **share the same delimiter**.
 
 
-***Member Instance Functions***
+***Member Functions***
 
 -  `void setFieldWidth(size_t newWidth)` -- sets the field width of the current object to the value of parameter `newWidth`
 -  `size_t getFieldWidth() const` -- returns the field width of the current object
@@ -94,7 +94,7 @@ The `Utilities` class has the following structure:
     - **Note:**  in this application, `str` represents a single line that has been read from an input file
 
 
-***Member Type Functions***
+***Class Functions***
 
 -  `static void setDelimiter(char newDelimiter)` -- sets the delimiter for this class to the character received
 -  `static char getDelimiter()` -- returns the delimiter for this class.
@@ -372,7 +372,7 @@ and follow the instructions.
 
 Milestone 3 implements and tests the `Workstation` and `LineManager` modules.
 
-The `LineManager` module configures the assembly line and then moves `CustomerOrders` along it (from start to finish).  The `LineManager` object configures the `Workstation` objects to meet the user's specifications, and moves orders along the line one step at a time. A `Workstation` is a `Station` that the `LineManager` has activated in configuring the line. At each step, each `Workstation` fills one item in an order, if possible. The manager moves orders from station to station. Once an order has reached the end of the line, it is either complete or incomplete. An order is incomplete if one or more stations had an insufficient number of items in stock to cover that order's requests.
+The `LineManager` module first configures the assembly line and then moves `CustomerOrders` along it (from start to finish).  The `LineManager` object configures the `Workstation` objects identified by the user, and moves orders along the line one step at a time. A `Workstation` is a `Station` that the `LineManager` has activated on the user's request. At each step, every `Workstation` fills one item in a `Customer Order`, if possible. The manager moves orders from station to station. Once an order has reached the end of the line, it is either complete or incomplete. An order is incomplete if one or more stations had an insufficient number of items in stock to cover that order's requests.
 
 ## `Workstation` Module
 
@@ -421,57 +421,28 @@ The `Workstation` class includes the following additional information:
 
 ## `LineManager` Module
 
-The `LineManager` class manages an entire assembly line of active stations and contains the following information:
+The `LineManager` class manages an assembly line of active stations and contains the following information:
 
 ***Instance Variables***
-- `std::vector<Workstation*> activeLine` – a collection of workstations that for the assembly line.
-- `size_t m_cntCustomerOrder` – the initial number of `CustomerOrder` objects
-- `Workstation* m_firstStation` - points to the first active station on the line
+- `std::vector<Workstation*> activeLine` – the collection of workstations for the current assembly line.
+- `size_t m_cntCustomerOrder` – the total number of `CustomerOrder` objects
+- `Workstation* m_firstStation` - points to the first active station on the current line
 
 ***Member Functions***
-- `LineManager(const std::string& file, const std::vector<Workstation*>& stations)` - this constructor receives the filename to be used for identifying the active stations on the assembly line (example:  `AssemblyLine.txt`) and a collection of workstations that are available for configuring the assembly line.
+- `LineManager(const std::string& file, const std::vector<Workstation*>& stations)` - this constructor receives the name of the file that identifies the active stations on the assembly line (example:  `AssemblyLine.txt`) and the collection of workstations available for configuring the assembly line.
 
-  The file contains how the workstations must be linked together. The format of each record in the input file is `WORKSTATION|NEXT_WORKSTATION`.
+  The file contains the linkage between workstation pairs. The format of each record in the file is `WORKSTATION|NEXT_WORKSTATION`. The records themselves are not in any particular order.
 
-  This function will load the content of the file, create the links between the workstations received as parameter, identify the first station in the assembly line and store its address in an attribute, and update the the attribute with the total number of orders found in the `pending` queue.  If something goes wrong, this constructor will report an error.  See below on how to achieve this.
+  This function stores the workstations in the order received from the file in the `activeLine` instance variable. It loads the contents of the file, stores the address of the next workstation in each element of the collection, identifies the first station in the assembly line and stores its address in the `m_firstStation` attribute. This function also updates the attribute that holds the total number of orders in the `pending` queue.  If something goes wrong, this constructor reports an error. 
 
-  This constructor:
+  **Note**: to receive full marks, use STL algorithms throughout this function, except for iterating through the file records (one `while` loop); marks will be deducted if you use any of `for`, `while` or `do-while` loops except for iterating through the file records. 
 
-  - opens the file named in the first parameter - if the file fails to open, throws an exception and report the error in a string object
-  - initializes the next station for each available `Workstation` to `nullptr` (that is, no next station)
-  - reads the records from the file object and extracts the current to next station linkages using a local `Utilities` object
-    - for each file record this constructor
-      - extracts the current station name
-      - finds the current station name in the container of available '`Worhstation`s referenced by the second parameter; 
-      - if not found, throws an exception and reports the error in a string object
-      - if found, adds the address of the station to the active assembly line
-      - if a second token exists on the record
-        - extracts the next station name
-        - finds the next station name in the container of available `Workstation`s referenced by the second parameter
-        - if not found, throws an exception and reports the error in a string object
-        - if found and is the same as the current station name, throws an exception and reports the error in a string object
-        - otherwise, if found, sets the next station address for the current station to the address found 
-            
-  - searches for the first station (the one to which no other station points)
-    - for each station in the active stations container (the test station)
-        - searches the container for a station that points to this test station as its next station
-        - if not found and no other station has already been identified, sets the address of the test station to `m_firstStation`
-        - if not found but another station has already been identified, throws an exception and reports the ambiguity in a string object
-    - if after the search, there are no candidates found, throws an exception and reports the error in a string object
-  - stores the number of customer orders in the `pending` container in `m_cntCustomerOrder`
-  - **Note**: to receive full marks, use STL algorithms throughout this function, except for iterating through the file records (one `while` loop); marks will be deducted if you use any of `for`, `while` or `do-while` loops except for iterating through the file records. 
+- `void linkStations()` - this modifier reorders the workstations present in the instance variable `activeLine` (loaded by the constructor) and stores the reordered collection in the same instance variable. The elements in the reordered collection start with the first station, proceeds to the next, and so forth until the end of the line. 
 
-- `void linkStations()` - this modifier links the active stations into an assembly line
-  - defines an empty container for storing addresses of sequenced `Workstation`s 
-  - starting with the iterator to the `m_firstStation`, continues iterating as long as the iterator points to a station
-    - stores the iterator in the sequencing container
-    - updates the iterator to the next station in line
-  - copies the sequenced container of active stations to the `activeLine`
-
-- `bool run(std::ostream& os)` –  this modifier performs **one** iteration of operations on the entire assembly line by doing the following:
+- `bool run(std::ostream& os)` –  this modifier performs **one** iteration of operations on all of the workstations in the current assembly line by doing the following:
     - keeps track of the current iteration number (use a local variable)
     - inserts into stream `os` the iteration number (how many times this function has been called by the client) in the format `Line Manager Iteration: COUNT<endl>`
-    - if the `pending` queue has a `CustomerOrder` object, move the order at the front of the queue to the `m_firstStation` of the `activeLine` and remove it from the queue. This function moves only one order to the line on a single iteration.
+    - if the `pending` queue has a `CustomerOrder` object, moves the order at the front of the queue to the `m_firstStation` of the `activeLine` and remove it from the queue. This function moves only one order to the line on a single iteration.
     - for each station on the line, executes one fill operation
     - for each station on the line, attempts to move a `CustomerOrder` down the line
     - moves each order in the `m_endOfLine` workstation to the `completed` or `incomplete` container
