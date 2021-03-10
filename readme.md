@@ -50,10 +50,6 @@ All files that you submit (`*.h` and `*.cpp`) should contain the following comme
 All of your source code, including externally linked variables, should be in the `sdds` namespace. Use class declarations in header files wherever appropriate.
 
 
-
-
-
-
 # Milestone 1
 
 ## `Utilities` and `Station` classes
