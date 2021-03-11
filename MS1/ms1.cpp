@@ -18,7 +18,7 @@ using namespace sdds;
 
 static bool loadStations(const char*, vector<Station>&);
 
-int main_ms1(int argc, char** argv)
+int main(int argc, char** argv)
 {
 	cout << "Command Line: " << argv[0];
 	for (int i = 1; i < argc; i++)

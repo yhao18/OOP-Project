@@ -21,7 +21,7 @@ using namespace sdds;
 template<typename T>
 static void loadFromFile(const char*, vector<T>&);
 
-int main_ms2(int argc, char** argv)
+int main(int argc, char** argv)
 {
 	cout << "Command Line: " << argv[0];
 	for (int i = 1; i < argc; i++)
